@@ -1,0 +1,1153 @@
+<!--                                                               
+                                                                                     人民有信仰 民族有希望 国家有力量
+                                                                          以实现中国特色社会主义共同理想为目标 党的十八大曾首次以  
+                                                                                  +----------------------------------- +
+                                                                                  |  =======社会主义核心价值观=======  |    
+                                                                                  +----------------------------------- +
+                                                                                  | 富强      民主      文明      和谐 |
+                                                                                  +----------------------------------- +
+                                                                                  | 自由      平等       公正     法治 |                                                                  
+                                                                                  +----------------------------------- +
+                                                                                  | 爱国      敬业       诚信     友善 |
+                                                                                  +----------------------------------- +
+                                                                                  |  =======社会主义核心价值观=======  |
+                                                                                  +----------------------------------- +
+                                                                              这二十四个字来高度概括社会主义核心价值观的组成
+ -->
+
+<!--
+Author: 陆砚舟
+Website: www.haoreai.com
+Contact: hao@wenrou.org
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信聊天 - 是帅哥</title>
+    <link rel="stylesheet" href="https://res.wx.qq.com/open/libs/weui/2.1.3/weui.min.css">
+    <link rel="stylesheet" href="css/chat.css">
+    <!-- 模态框内联样式与交互脚本（保持样式一致性并便于快速集成） -->
+            <style>
+                /* 模态遮罩 - 默认移动端底部弹出 */
+                .profile-modal {
+                    position: fixed;
+                    inset: 0;
+                    display: none;
+                    align-items: flex-end; /* 移动端底部弹出 */
+                    justify-content: center;
+                    background: rgba(0,0,0,0.4);
+                    z-index: 9999;
+                    padding: 0; /* 移动端不要额外内边距，紧贴底部 */
+                }
+                .profile-modal.show {
+                    display: flex;
+                }
+
+                /* 面板样式 - 移动端从底部弹出卡片 */
+                .profile-panel {
+                    width: 100%;
+                    max-width: 480px;
+                    background: #ffffff;
+                    border-radius: 12px 12px 0 0;
+                    box-shadow: 0 -8px 40px rgba(0,0,0,0.3);
+                    transform: translateY(0);
+                    animation: slideUp 260ms ease-out;
+                    padding-bottom: 24px;
+                    overflow: hidden;
+                    max-height: 85vh; /* 避免占满全屏 */
+                }
+                @keyframes slideUp {
+                    from { transform: translateY(18%); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+
+                /* 桌面端：模态居中弹出，移动端行为保持底部弹出 */
+                @media (min-width: 768px) {
+                    .profile-modal {
+                        align-items: center;
+                        justify-content: center;
+                        padding: 40px;
+                    }
+                    .profile-panel {
+                        width: 480px;
+                        max-width: 90%;
+                        border-radius: 12px;
+                        box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+                        animation: popIn 220ms ease-out;
+                        transform: translateY(0) scale(1);
+                        padding-bottom: 20px;
+                        max-height: 90vh;
+                    }
+                    @keyframes popIn {
+                        from { transform: translateY(10px) scale(0.98); opacity: 0; }
+                        to { transform: translateY(0) scale(1); opacity: 1; }
+                    }
+                }
+
+                .profile-top {
+                    display: flex;
+                    align-items: center;
+                    gap: 16px;
+                    padding: 18px 16px;
+                    position: relative;
+                }
+                .profile-avatar img {
+                    width: 88px;
+                    height: 88px;
+                    border-radius: 8px;
+                    object-fit: cover;
+                    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+                }
+                .profile-info {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 6px;
+                    min-width: 0;
+                }
+                .profile-name {
+                    font-size: 20px;
+                    font-weight: 700;
+                    color: #111;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+                .gender-icon.male { width: 18px; height: 18px; }
+                .profile-id, .profile-region {
+                    font-size: 13px;
+                    color: #666;
+                }
+                .profile-close {
+                    position: absolute;
+                    right: 12px;
+                    top: 8px;
+                    border: none;
+                    background: transparent;
+                    font-size: 26px;
+                    line-height: 1;
+                    color: #999;
+                    cursor: pointer;
+                    padding: 6px;
+                }
+                .profile-actions {
+                    display: flex;
+                    gap: 12px;
+                    justify-content: center;
+                    padding: 12px 16px;
+                }
+                /* 支持 <button> 与 <a> 保持一致的按钮样式 */
+                .action-btn,
+                .action-btn:link,
+                .action-btn:visited {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    text-decoration: none;
+                    flex: 1;
+                    padding: 10px 12px;
+                    border-radius: 8px;
+                    border: 1px solid #e6e6e6;
+                    background: #fff;
+                    font-weight: 600;
+                    cursor: pointer;
+                    color: #111;
+                }
+                .action-btn.primary {
+                    background: linear-gradient(135deg,#07c160 0%, #06ad56 100%);
+                    color: #fff;
+                    border: none;
+                }
+                .profile-list {
+                    margin: 12px 0;
+                    padding: 0 12px;
+                    list-style: none;
+                }
+                .profile-list-item {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    padding: 14px 12px;
+                    border-top: 1px solid #f0f0f0;
+                    font-size: 15px;
+                    color: #222;
+                    background: #fff;
+                }
+                .profile-list-item .list-left { color:#222; }
+                .profile-list-item .list-right { color:#888; font-size:13px; }
+                .profile-footer {
+                    padding: 12px;
+                    display: flex;
+                    justify-content: center;
+                }
+                .footer-btn {
+                    padding: 8px 14px;
+                    border-radius: 8px;
+                    border: 1px solid #e6e6e6;
+                    background: #fff;
+                    cursor: pointer;
+                }
+
+                /* 响应式与暗色模式适配 */
+                @media (max-width: 420px) {
+                    .profile-panel { border-radius: 10px 10px 0 0; }
+                    .profile-avatar img { width: 76px; height: 76px; }
+                    .profile-name { font-size: 18px; }
+                }
+                @media (prefers-color-scheme: dark) {
+                    .profile-panel { background: #111; color: #eee; }
+                    .profile-list-item { border-top-color: rgba(255,255,255,0.04); background: transparent; color:#eee; }
+                    .profile-id, .profile-region, .list-right { color: #bbb; }
+                    .profile-close { color: #ddd; }
+                }
+            </style>
+</head>
+<body>
+    <div class="chat-container">
+        <!-- 顶部标题栏 -->
+        <div class="chat-header">
+            <div class="chat-header-left">
+                <i class="weui-icon-back"></i>
+            </div>
+            <div class="chat-header-title">是帅哥</div>
+            <div class="chat-header-right">
+                <i class="weui-icon-more"></i>
+            </div>
+        </div>
+
+        <!-- 消息区域 -->
+        <div class="chat-messages" id="chatMessages">
+            <!-- 时间戳 -->
+            <div class="message-time">
+                <span>昨天 09:20</span>
+            </div>
+
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        你在干嘛
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                       今天天气真不错呢 ☀️
+                    </div>
+                </div>
+            </div>
+
+            <!-- 接收的表情包 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble emoji-bubble">
+                        <img src="img/bqb/xmlh.jpg" alt="表情包" class="emoji-image">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        是啊，阳光明媚的，心情都变好了
+                    </div>
+                </div>
+            </div>
+           <!-- 时间戳 -->
+            <div class="message-time">
+                <span>昨天 09:45</span>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        对了，昨天看到你朋友圈发的聚餐，是公司聚会咩？把我看饿了！
+                    </div>
+                </div>
+            </div>
+
+            <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        ？？？不是，昨天的事情你为什么现在才问
+                    </div>
+                </div>
+            </div>
+            <!-- 发送的表情包 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble emoji-bubble">
+                        <img src="img/bqb/tlp.gif" alt="表情包" class="emoji-image">
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                       没有耶，就是有点想你
+                    </div>
+                </div>
+            </div>
+            <!-- 时间戳 -->
+            <div class="message-time">
+                <span>昨天 10:11</span>
+            </div>
+            <!-- 发送的表情包 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble emoji-bubble">
+                        <img src="img/bqb/xxlld.jpg" alt="表情包" class="emoji-image">
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的表情包 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble emoji-bubble">
+                        <img src="img/bqb/dhyja.jpg" alt="表情包" class="emoji-image">
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                       我的意思是我饿了
+                    </div>
+                </div>
+            </div>
+
+            <!-- 时间戳 -->
+            <div class="message-time">
+                <span>昨天 12:35</span>
+            </div>
+
+            <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        我也饿了，点个外外卖
+                    </div>
+                </div>
+            </div>
+           <!-- 发送的照片 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <img src="img/tuimg/phf.jpg" alt="照片" class="photo-image">
+                </div>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        好姐妹我们一起双拼吧
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的表情包 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble emoji-bubble">
+                        <img src="img/bqb/wr.jpg" alt="表情包" class="emoji-image">
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的表情包 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble emoji-bubble">
+                        <img src="img/bqb/wbxds.jpg" alt="表情包" class="emoji-image">
+                    </div>
+                </div>
+            </div>
+            <!-- 时间戳 -->
+            <div class="message-time">
+                <span>昨天 14:20</span>
+            </div>
+            <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        吃饱了，打了个饱嗝
+                    </div>
+                </div>
+            </div>
+            <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        外卖太慢了，都不能午睡了
+                    </div>
+                </div>
+            </div>
+            <!-- 时间戳 -->
+            <div class="message-time">
+                <span>昨天 18:18</span>
+            </div>
+             <!-- 接收的表情包 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble emoji-bubble">
+                        <img src="img/bqb/bcyfcl.jpg" alt="表情包" class="emoji-image">
+                    </div>
+                </div>
+            </div>
+            <!-- 时间戳 -->
+            <div class="message-time">
+                <span>昨天 20:00</span>
+            </div>
+            <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        哈哈哈哈哈
+                    </div>
+                </div>
+            </div>
+            <!-- 时间戳 -->
+            <div class="message-time">
+                <span>昨天 20:22</span>
+            </div>
+            <!-- 接收的音乐卡片（精简版，视觉更通透、不拥挤） -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="music-card-compact" data-music="music/AstridSILoveYou.mp3" role="button" tabindex="0" aria-label="播放 I'm Sorry, I Love You">
+                        <div class="compact-left">
+                            <img src="music/AstridSILoveYou.jpg" alt="封面" class="compact-cover">
+                        </div>
+                        <div class="compact-center" style="min-width:0;">
+                            <div class="compact-title">I'm Sorry, I Love You</div>
+                            <div class="compact-meta">Astrid S · 02:27</div>
+                        </div>
+                        <div class="compact-right" aria-hidden="true">
+                            <button class="play-circle" aria-label="播放">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 局部样式：覆盖原 music-card，使该卡更轻盈、间距更宽松 -->
+                    <style>
+                        .music-card-compact {
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                            max-width: 320px;
+                            background: linear-gradient(180deg,#fff,#fbfbfb);
+                            border-radius: 12px;
+                            padding: 10px;
+                            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+                            border: 1px solid rgba(0,0,0,0.04);
+                            cursor: pointer;
+                        }
+                        .music-card-compact:focus,
+                        .music-card-compact:hover {
+                            transform: translateY(-2px);
+                            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+                            outline: none;
+                        }
+                        .compact-left .compact-cover {
+                            width: 72px;
+                            height: 72px;
+                            border-radius: 8px;
+                            object-fit: cover;
+                            display: block;
+                            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+                        }
+                        .compact-center {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 4px;
+                            overflow: hidden;
+                        }
+                        .compact-title {
+                            font-size: 15px;
+                            font-weight: 600;
+                            color: #151515;
+                            white-space: nowrap;
+                            text-overflow: ellipsis;
+                            overflow: hidden;
+                        }
+                        .compact-meta {
+                            font-size: 13px;
+                            color: #7a7a7a;
+                        }
+                        .compact-right .play-circle {
+                            width: 40px;
+                            height: 40px;
+                            border-radius: 50%;
+                            border: none;
+                            background: linear-gradient(135deg,#07c160,#06ad56);
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            cursor: pointer;
+                            box-shadow: 0 6px 14px rgba(7,193,96,0.18);
+                            padding: 0;
+                        }
+                        .compact-right .play-circle svg { display:block; }
+                        /* 小屏幕自适应，避免卡片过宽 */
+                        @media (max-width: 420px) {
+                            .music-card-compact { max-width: 72vw; padding: 8px; gap: 10px; }
+                            .compact-left .compact-cover { width: 48px; height: 48px; }
+                            .compact-right .play-circle { width: 36px; height: 36px; }
+                        }
+                        /* 暗色模式调整 */
+                        @media (prefers-color-scheme: dark) {
+                            .music-card-compact {
+                                background: linear-gradient(180deg,#1f1f1f,#171717);
+                                border-color: rgba(255,255,255,0.04);
+                                box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+                            }
+                            .compact-title { color: #fff; }
+                            .compact-meta { color: #bdbdbd; }
+                        }
+                    </style>
+                </div>
+            </div>
+            <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                       有空一起吃饭
+                    </div>
+                </div>
+            </div>
+            <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                       这周末好像天气挺好
+                    </div>
+                </div>
+            </div>
+            <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                       要不要一起出去走走？
+                    </div>
+                </div>
+            </div>
+            <!-- 时间戳 -->
+            <div class="message-time">
+                <span>昨天 20:36</span>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                       哈哈哈哈
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                       要不去看海吧，听说海很美，风也不错
+                    </div>
+                </div>
+            </div>
+            <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        好呀
+                    </div>
+                </div>
+            </div>
+              <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        记得给我带个帅哥
+                    </div>
+                </div>
+            </div>
+            <!-- 发送的表情包 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble emoji-bubble">
+                        <img src="img/bqb/aixin.jpg" alt="表情包" class="emoji-image">
+                    </div>
+                </div>
+            </div>
+    
+            <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        这个周末好像天气挺好
+                    </div>
+                </div>
+            </div>
+            <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        这个周末怎么样？我们可以去公园看看
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                       ？
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                       外带帅哥？
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                       你喜欢什么样子的帅哥捏？
+                    </div>
+                </div>
+            </div>
+             <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        一般般，看着平平无奇就好
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                       ？？？
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                       ？意思是平平无奇的大帅哥呗？
+                    </div>
+                </div>
+            </div>
+             <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        对对
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                       不大认识
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                       不过给你介绍一个超级无敌大帅哥
+                    </div>
+                </div>
+            </div>
+             <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        哪里哪里？
+                    </div>
+                </div>
+            </div>
+            <!-- 时间戳 -->
+            <div class="message-time">
+                <span>昨天 20:56</span>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        给给给
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        这就推微信给你
+                    </div>
+                </div>
+            </div>
+            <!-- 仿微信个人名片推荐卡片（点击弹出个人资料） -->
+            <div class="message-item received" aria-live="polite">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="才华">
+                </div>
+                <div class="message-content">
+                    <div class="contact-card" role="button" aria-label="个人名片：才华" tabindex="0" onclick="openProfile(event)">
+                        <img src="img/avatar.jpg" alt="才华 头像" class="contact-avatar" />
+                        <div class="contact-card-body" style="min-width:0;">
+                            <div class="contact-name">
+                                才华
+                            </div>
+                            <div class="contact-desc">个人名片，点击查看详情</div>
+                        </div>
+                        <div class="contact-action">
+                            <button class="view-btn" aria-label="查看名片">
+                                <i class="weui-icon-more" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 个人资料模态框（仿微信个人资料界面） -->
+            <div id="profileModal" class="profile-modal" role="dialog" aria-modal="true" aria-hidden="true">
+                <div class="profile-panel" role="document" tabindex="0">
+                    <div class="profile-top">
+                        <div class="profile-avatar">
+                            <img src="img/avatar.jpg" alt="才华 头像">
+                        </div>
+                        <div class="profile-info">
+                            <div class="profile-name">
+                                才华
+                                <svg class="gender-icon male" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false" role="img">
+                                    <path fill="#07c160" d="M14 2h8v8h-2V6.41l-6.29 6.3a5 5 0 1 1-1.41-1.41L18.59 5H14V2z"></path>
+                                </svg>
+                            </div>
+                            <div class="profile-id">微信号：<span class="weixin-id">haoreai.com</span></div>
+                            <div class="profile-region">地区：广西 温柔里</div>
+                        </div>
+                        <button class="profile-close" aria-label="关闭" onclick="closeProfile()">&times;</button>
+                    </div>
+
+                    <div class="profile-actions">
+                        <a href="https://www.haoreai.com?wechat" class="action-btn primary" target="_blank" rel="noopener noreferrer" aria-label="发消息">发消息</a>
+                        <a href="https://www.haoreai.com?wechat" class="action-btn" target="_blank" rel="noopener noreferrer" aria-label="视频通话">视频通话</a>
+                    </div>
+
+                    <ul class="profile-list" role="list">
+                        <li class="profile-list-item" role="listitem">
+                            <div class="list-left">朋友圈</div>
+                            <div class="list-right"><a href="https://www.haoreai.com?wechat" target="_blank" rel="noopener noreferrer">查看全部</a></div>
+                        </li>
+                        <li class="profile-list-item" role="listitem">
+                            <div class="list-left">更多信息</div>
+                            <div class="list-right">个人信息、标签</div>
+                        </li>
+                        <li class="profile-list-item" role="listitem">
+                            <div class="list-left">设置备注和标签</div>
+                            <div class="list-right">备注名 / 添加标签</div>
+                        </li>
+                        <li class="profile-list-item" role="listitem">
+                            <div class="list-left">地理位置</div>
+                            <div class="list-right">广西 温柔里</div>
+                        </li>
+                    </ul>
+
+                    <div class="profile-footer">
+                        <button class="footer-btn">更多</button>
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                       是帅哥
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的表情包 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble emoji-bubble">
+                        <img src="img/bqb/lhx.jpg" alt="表情包" class="emoji-image">
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        你就躲在被窝里偷着笑吧
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        哈哈哈哈哈哈笑死
+                    </div>
+                </div>
+            </div>
+             <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        ？
+                    </div>
+                </div>
+            </div>
+             <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        哈哈哈哈哈
+                    </div>
+                </div>
+            </div>
+             <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                       那我们周末什么时候去
+                    </div>
+                </div>
+            </div>
+            <!-- 时间戳 -->
+            <div class="message-time">
+                <span>昨天 21:15</span>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        好好好！
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        那我们周六上午9点，老地方见？
+                    </div>
+                </div>
+            </div>
+            <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        行
+                    </div>
+                </div>
+            </div>
+
+            <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        没问题！到时候见 😊
+                    </div>
+                </div>
+            </div>
+            <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        我要追剧了，等下十一点多睡觉
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                       我也是！！！
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的表情包 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble emoji-bubble">
+                        <img src="img/bqb/lh.gif" alt="表情包" class="emoji-image">
+                    </div>
+                </div>
+            </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        晚安！
+                    </div>
+                </div>
+            </div>
+             <!-- 发送的消息 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                        晚安
+                    </div>
+                </div>
+            </div>
+            <!-- 发送的表情包 -->
+            <div class="message-item sent">
+                <div class="message-avatar">
+                    <img src="img/yy.jpg" alt="陆砚舟">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble emoji-bubble">
+                        <img src="img/bqb/mysxxl.jpg" alt="表情包" class="emoji-image">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 底部输入区域 -->
+        <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+                <div class="input-tools">
+                    <button class="tool-btn voice-btn">
+                        <i class="weui-icon-voice"></i>
+                    </button>
+                </div>
+                <div class="input-area">
+                    <input type="text" class="chat-input" id="messageInput" placeholder="请输入消息...">
+                </div>
+                <div class="input-actions">
+                    <button class="tool-btn emoji-btn">
+                        <i class="weui-icon-emoji"></i>
+                    </button>
+                    <button class="tool-btn add-btn">
+                        <i class="weui-icon-add"></i>
+                    </button>
+                    <button class="send-btn" id="sendBtn">发送</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/chat.js"></script>
+    <script>
+                // 打开个人资料
+                function openProfile(e) {
+                    var modal = document.getElementById('profileModal');
+                    if (!modal) return;
+                    modal.classList.add('show');
+                    modal.setAttribute('aria-hidden', 'false');
+                    // 防止消息区域滚动穿透
+                    document.body.style.overflow = 'hidden';
+                }
+                // 关闭个人资料
+                function closeProfile() {
+                    var modal = document.getElementById('profileModal');
+                    if (!modal) return;
+                    modal.classList.remove('show');
+                    modal.setAttribute('aria-hidden', 'true');
+                    document.body.style.overflow = '';
+                }
+                // 点击遮罩关闭（但点击面板不关闭）
+                document.addEventListener('click', function(ev){
+                    var modal = document.getElementById('profileModal');
+                    if (!modal) return;
+                    if (!modal.classList.contains('show')) return;
+                    var panel = modal.querySelector('.profile-panel');
+                    if (!panel) return;
+                    if (!panel.contains(ev.target)) {
+                        closeProfile();
+                    }
+                }, true);
+                // 键盘支持：Esc 关闭
+                document.addEventListener('keydown', function(ev){
+                    if (ev.key === 'Escape') closeProfile();
+                });
+            </script>
+</body>
+</html>
