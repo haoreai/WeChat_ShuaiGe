@@ -28,6 +28,83 @@ Contact: hao@wenrou.org
     <title>微信聊天 - 是帅哥</title>
     <link rel="stylesheet" href="https://res.wx.qq.com/open/libs/weui/2.1.3/weui.min.css">
     <link rel="stylesheet" href="css/chat.css">
+     <!-- 局部样式：覆盖原 music-card，使该卡更轻盈、间距更宽松 -->
+                    <style>
+                        .music-card-compact {
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                            max-width: 320px;
+                            background: linear-gradient(180deg,#fff,#fbfbfb);
+                            border-radius: 12px;
+                            padding: 10px;
+                            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+                            border: 1px solid rgba(0,0,0,0.04);
+                            cursor: pointer;
+                        }
+                        .music-card-compact:focus,
+                        .music-card-compact:hover {
+                            transform: translateY(-2px);
+                            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+                            outline: none;
+                        }
+                        .compact-left .compact-cover {
+                            width: 50px;
+                            height: 50px;
+                            border-radius: 8px;
+                            object-fit: cover;
+                            display: block;
+                            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+                        }
+                        .compact-center {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 4px;
+                            overflow: hidden;
+                        }
+                        .compact-title {
+                            font-size: 15px;
+                            font-weight: 600;
+                            color: #151515;
+                            white-space: nowrap;
+                            text-overflow: ellipsis;
+                            overflow: hidden;
+                        }
+                        .compact-meta {
+                            font-size: 13px;
+                            color: #7a7a7a;
+                        }
+                        .compact-right .play-circle {
+                            width: 40px;
+                            height: 40px;
+                            border-radius: 50%;
+                            border: none;
+                            background: linear-gradient(135deg,#07c160,#06ad56);
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            cursor: pointer;
+                            box-shadow: 0 6px 14px rgba(7,193,96,0.18);
+                            padding: 0;
+                        }
+                        .compact-right .play-circle svg { display:block; }
+                        /* 小屏幕自适应，避免卡片过宽 */
+                        @media (max-width: 420px) {
+                            .music-card-compact { max-width: 72vw; padding: 8px; gap: 10px; }
+                            .compact-left .compact-cover { width: 48px; height: 48px; }
+                            .compact-right .play-circle { width: 36px; height: 36px; }
+                        }
+                        /* 暗色模式调整 */
+                        @media (prefers-color-scheme: dark) {
+                            .music-card-compact {
+                                background: linear-gradient(180deg,#1f1f1f,#171717);
+                                border-color: rgba(255,255,255,0.04);
+                                box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+                            }
+                            .compact-title { color: #fff; }
+                            .compact-meta { color: #bdbdbd; }
+                        }
+                    </style>
     <!-- 模态框内联样式与交互脚本（保持样式一致性并便于快速集成） -->
             <style>
                 /* 模态遮罩 - 默认移动端底部弹出 */
@@ -474,6 +551,17 @@ Contact: hao@wenrou.org
             <div class="message-time">
                 <span>昨天 20:22</span>
             </div>
+            <!-- 接收的消息 -->
+            <div class="message-item received">
+                <div class="message-avatar">
+                    <img src="img/avatar.jpg" alt="陆浩">
+                </div>
+                <div class="message-content">
+                    <div class="message-bubble">
+                       听听歌
+                    </div>
+                </div>
+            </div>
             <!-- 接收的音乐卡片（精简版，视觉更通透、不拥挤） -->
             <div class="message-item received">
                 <div class="message-avatar">
@@ -494,84 +582,6 @@ Contact: hao@wenrou.org
                             </button>
                         </div>
                     </div>
-
-                    <!-- 局部样式：覆盖原 music-card，使该卡更轻盈、间距更宽松 -->
-                    <style>
-                        .music-card-compact {
-                            display: flex;
-                            align-items: center;
-                            gap: 12px;
-                            max-width: 320px;
-                            background: linear-gradient(180deg,#fff,#fbfbfb);
-                            border-radius: 12px;
-                            padding: 10px;
-                            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-                            border: 1px solid rgba(0,0,0,0.04);
-                            cursor: pointer;
-                        }
-                        .music-card-compact:focus,
-                        .music-card-compact:hover {
-                            transform: translateY(-2px);
-                            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-                            outline: none;
-                        }
-                        .compact-left .compact-cover {
-                            width: 72px;
-                            height: 72px;
-                            border-radius: 8px;
-                            object-fit: cover;
-                            display: block;
-                            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-                        }
-                        .compact-center {
-                            display: flex;
-                            flex-direction: column;
-                            gap: 4px;
-                            overflow: hidden;
-                        }
-                        .compact-title {
-                            font-size: 15px;
-                            font-weight: 600;
-                            color: #151515;
-                            white-space: nowrap;
-                            text-overflow: ellipsis;
-                            overflow: hidden;
-                        }
-                        .compact-meta {
-                            font-size: 13px;
-                            color: #7a7a7a;
-                        }
-                        .compact-right .play-circle {
-                            width: 40px;
-                            height: 40px;
-                            border-radius: 50%;
-                            border: none;
-                            background: linear-gradient(135deg,#07c160,#06ad56);
-                            display: inline-flex;
-                            align-items: center;
-                            justify-content: center;
-                            cursor: pointer;
-                            box-shadow: 0 6px 14px rgba(7,193,96,0.18);
-                            padding: 0;
-                        }
-                        .compact-right .play-circle svg { display:block; }
-                        /* 小屏幕自适应，避免卡片过宽 */
-                        @media (max-width: 420px) {
-                            .music-card-compact { max-width: 72vw; padding: 8px; gap: 10px; }
-                            .compact-left .compact-cover { width: 48px; height: 48px; }
-                            .compact-right .play-circle { width: 36px; height: 36px; }
-                        }
-                        /* 暗色模式调整 */
-                        @media (prefers-color-scheme: dark) {
-                            .music-card-compact {
-                                background: linear-gradient(180deg,#1f1f1f,#171717);
-                                border-color: rgba(255,255,255,0.04);
-                                box-shadow: 0 6px 18px rgba(0,0,0,0.6);
-                            }
-                            .compact-title { color: #fff; }
-                            .compact-meta { color: #bdbdbd; }
-                        }
-                    </style>
                 </div>
             </div>
             <!-- 发送的消息 -->
@@ -581,7 +591,7 @@ Contact: hao@wenrou.org
                 </div>
                 <div class="message-content">
                     <div class="message-bubble">
-                       有空一起吃饭
+                       有空一起吃个饭
                     </div>
                 </div>
             </div>
